@@ -1,9 +1,16 @@
+// 4. Class Attendance CheckerBuild a program that records whether each student is present or absent. At the end, show the number of students present and absent, and list the names of any students who are absent.
+
+// Your program should use: an array of student objects, a loop to check each student’s attendance, and conditionals to count and list students.
+
+
+
+
 let StudentsListInclude = [
-    { name: "Simeon", attendance: "Absent" },
-    { name: "Joel", attendance: "Present" },
-    { name: "Kingesly", attendance: "Present" },
-    { name: "David", attendance: "Present" },
-    { name: "Daniel", attendance: "Present" }
+    { name: "James", attendance: "Absent" },
+    { name: "John", attendance: "Present" },
+    { name: "Caleb", attendance: "Present" },
+    { name: "Divine", attendance: "Present" },
+    { name: "Nate", attendance: "Present" }
 ];
 
 let NumberofStudentAbsent = [];
@@ -17,6 +24,7 @@ for (let i = 0; i < StudentsListInclude.length; i++) {
         NumberofStudentPresent.push(student.name);
     }
 }
-
 console.log("present(" + NumberofStudentPresent.length + "): " + NumberofStudentPresent.join(",  "));
+
 console.log("absent(" + NumberofStudentAbsent.length + "): " + NumberofStudentAbsent.join(",  "));
+
