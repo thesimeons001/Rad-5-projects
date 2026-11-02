@@ -1,3 +1,2 @@
-let oddLetters;
-let evenNumb;  
-  if ()
+let Attendance = "present" | "absent";
+console.log(Attendance)
