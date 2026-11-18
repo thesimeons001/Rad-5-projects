@@ -26,7 +26,7 @@ const saveNotes = (notes) => {
 
 // Get all notes
 app.get('/notes', (req, res) => {
-    try {
+    try {   
         const notes = readNotes();
         res.json(notes);
     } catch (error) {
