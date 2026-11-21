@@ -1,6 +1,7 @@
-import express from 'express';
-import noteRoutes from './routes/noteRoutes.js';
-import { errorHandler } from './middleware/errorHandler.js';
+import express from "express";
+import noteRoutes from "./routes/noteRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
@@ -8,7 +9,8 @@ const app = express();
 app.use(express.json());
 
 // Routes
-app.use('/notes', noteRoutes);
+app.use("/notes", noteRoutes);
+app.use("/users", userRoutes);
 
 // Error handler
 app.use(errorHandler);
