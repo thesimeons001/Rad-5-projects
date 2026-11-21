@@ -1,0 +1,14 @@
+$kind: http-request
+name: http://localhost:3000/users/profile
+description: ""
+url: http://localhost:3000/users/profile
+method: GET
+body:
+  type: json
+  content: "{\r
+
+    \  \"message\": \"Authentication token required\"\r
+
+    }"
+settings: {}
+order: 1000
