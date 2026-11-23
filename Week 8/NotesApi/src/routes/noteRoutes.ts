@@ -1,28 +1,32 @@
-import { Router } from 'express';
+import { Router } from "express";
 
 import {
-    getAllNotes,
-    getNoteById,
-    createNote,
-    updateNote,
-    deleteNote
-} from '../controllers/noteController.js';
+  getAllNotes,
+  getNoteById,
+  createNote,
+  updateNote,
+  deleteNote,
+} from "../controllers/noteController.js";
+
+import { authenticate } from "../middleware/Authentication.js";
+import { authorizeAdmin } from "../middleware/authorizeAdmin.js";
+import { validateNote } from "../middleware/validateNote.js";
 
 const router = Router();
 
-// GET all notes
-router.get('/', getAllNotes);
+// Get all notes
+router.get("/", authenticate, getAllNotes);
 
-// GET a single note
-router.get('/:id', getNoteById);
+// Get a single note
+router.get("/:id", authenticate, getNoteById);
 
-// CREATE a note
-router.post('/', createNote);
+// Create a note
+router.post("/", authenticate, validateNote, createNote);
 
-// UPDATE a note
-router.put('/:id', updateNote);
+// Update a note
+router.put("/:id", authenticate, validateNote, updateNote);
 
-// DELETE a note
-router.delete('/:id', deleteNote);
+// Only admins can delete notes
+router.delete("/:id", authenticate, authorizeAdmin, deleteNote);
 
 export default router;

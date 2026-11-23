@@ -1,10 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+
 import type {
   CreateUserInput,
   LoginInput,
   User,
+  UserRole,
 } from "../types/users.js";
 
 export const usersFile = path.join(process.cwd(), "data", "users.json");
@@ -12,7 +14,16 @@ export const usersFile = path.join(process.cwd(), "data", "users.json");
 // Read users from the JSON file
 export const readUsers = (): User[] => {
   const data = fs.readFileSync(usersFile, "utf-8");
-  return JSON.parse(data) as User[];
+
+  const users = JSON.parse(data) as Array<
+    Omit<User, "role"> & { role?: UserRole }
+  >;
+
+  // Give existing users the default "user" role
+  return users.map((user) => ({
+    ...user,
+    role: user.role === "admin" ? "admin" : "user",
+  }));
 };
 
 // Save users to the JSON file
@@ -41,6 +52,7 @@ export const registerUser = (input: CreateUserInput): User => {
     username: input.username,
     email: input.email.toLowerCase(),
     password: input.password,
+    role: "user",
   };
 
   users.push(newUser);

@@ -1,3 +1,5 @@
+export type UserRole = "user" | "admin";
+
 export interface CreateUserInput {
   username: string;
   email: string;
@@ -14,19 +16,18 @@ export interface User {
   username: string;
   email: string;
   password: string;
+  role: UserRole;
 }
 
 export interface SafeUser {
   id: string;
   username: string;
   email: string;
+  role: UserRole;
 }
 
 export interface JwtPayload {
   userId: string;
   username: string;
-}
-export interface TokenPayload {
-  userId: string;
-  username: string;
+  role: UserRole;
 }

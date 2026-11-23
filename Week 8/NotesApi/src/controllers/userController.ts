@@ -1,10 +1,12 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+
 import {
   registerUser,
   loginUser,
 } from "../services/userService.js";
+
 import type { SafeUser } from "../types/users.js";
 
 // Remove the password before sending user data to the client
@@ -13,39 +15,27 @@ const removePassword = (user: {
   username: string;
   email: string;
   password: string;
+  role: "user" | "admin";
 }): SafeUser => {
   return {
     id: user.id,
     username: user.username,
     email: user.email,
+    role: user.role,
   };
 };
 
 // Register a new user
 export const register = (req: Request, res: Response): void => {
   try {
-    const { username, email, password } = req.body ?? {};
-
-    if (
-      typeof username !== "string" ||
-      typeof email !== "string" ||
-      typeof password !== "string" ||
-      !username.trim() ||
-      !email.trim() ||
-      !password.trim()
-    ) {
-      res.status(400).json({
-        message: "username, email and password are required",
-      });
-      return;
-    }
+    const { username, email, password } = req.body;
 
     // Hash the user's password
     const hashedPassword = bcrypt.hashSync(password, 10);
 
     const newUser = registerUser({
-      username: username.trim(),
-      email: email.trim(),
+      username,
+      email,
       password: hashedPassword,
     });
 
@@ -53,17 +43,17 @@ export const register = (req: Request, res: Response): void => {
       message: "User registered successfully",
       user: removePassword(newUser),
     });
-
   } catch (error) {
     console.error("Registration error:", error);
 
-    if (error instanceof Error) {
-      if (error.message === "Username or email already exists") {
-        res.status(409).json({
-          message: error.message,
-        });
-        return;
-      }
+    if (
+      error instanceof Error &&
+      error.message === "Username or email already exists"
+    ) {
+      res.status(409).json({
+        message: error.message,
+      });
+      return;
     }
 
     res.status(500).json({
@@ -75,22 +65,10 @@ export const register = (req: Request, res: Response): void => {
 // Login an existing user
 export const login = (req: Request, res: Response): void => {
   try {
-    const { email, password } = req.body ?? {};
-
-    if (
-      typeof email !== "string" ||
-      typeof password !== "string" ||
-      !email.trim() ||
-      !password
-    ) {
-      res.status(400).json({
-        message: "email and password are required",
-      });
-      return;
-    }
+    const { email, password } = req.body;
 
     const user = loginUser({
-      email: email.trim(),
+      email,
       password: "",
     });
 
@@ -123,10 +101,12 @@ export const login = (req: Request, res: Response): void => {
       return;
     }
 
+    // Generate a JWT containing the user's role
     const token = jwt.sign(
       {
         userId: user.id,
         username: user.username,
+        role: user.role,
       },
       secret,
       {
@@ -139,7 +119,6 @@ export const login = (req: Request, res: Response): void => {
       token,
       user: removePassword(user),
     });
-
   } catch (error) {
     console.error("Login error:", error);
 
@@ -147,4 +126,4 @@ export const login = (req: Request, res: Response): void => {
       message: "Server error",
     });
   }
-};
+}; 

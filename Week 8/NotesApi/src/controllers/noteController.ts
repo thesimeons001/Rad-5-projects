@@ -1,133 +1,135 @@
-import type { Request, Response } from 'express';
-import { readNotes, saveNotes } from '../services/noteService.js';
+import type { Response } from "express";
+import type { AuthRequest } from "../middleware/Authentication.js";
+import { readNotes, saveNotes } from "../services/noteService.js";
 
-// Get all notes
-export const getAllNotes = (req: Request, res: Response): void => {
-    try {
-        const notes = readNotes();
-        res.json(notes);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Could not retrieve notes' });
-    }
+// Get only the logged-in user's notes
+export const getAllNotes = (
+  req: AuthRequest,
+  res: Response
+): void => {
+  try {
+    const notes = readNotes();
+
+    const userNotes = notes.filter(
+      note => note.userId === req.user!.userId
+    );
+
+    res.json(userNotes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Could not retrieve notes" });
+  }
 };
 
-// Get a single note
-export const getNoteById = (req: Request, res: Response): void => {
-    try {
-        const notes = readNotes();
+// Get a single note belonging to the logged-in user
+export const getNoteById = (
+  req: AuthRequest,
+  res: Response
+): void => {
+  try {
+    const notes = readNotes();
 
-        const note = notes.find(
-            n => n.id === Number(req.params.id)
-        );
+    const note = notes.find(
+      n =>
+        n.id === Number(req.params.id) &&
+        n.userId === req.user!.userId
+    );
 
-        if (!note) {
-            res.status(404).json({ message: 'Note not found' });
-            return;
-        }
-
-        res.json(note);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Could not retrieve note' });
+    if (!note) {
+      res.status(404).json({ message: "Note not found" });
+      return;
     }
+
+    res.json(note);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Could not retrieve note" });
+  }
 };
 
 // Create a new note
-export const createNote = (req: Request, res: Response): void => {
-    try {
-        const { title, content } = req.body ?? {};
+export const createNote = (
+  req: AuthRequest,
+  res: Response
+): void => {
+  try {
+    const { title, content } = req.body;
 
-        if (
-            typeof title !== 'string' ||
-            typeof content !== 'string' ||
-            !title.trim() ||
-            !content.trim()
-        ) {
-            res.status(400).json({
-                message: 'Title and content are required'
-            });
-            return;
-        }
+    const notes = readNotes();
 
-        const notes = readNotes();
+    const newNote = {
+      id: Date.now(),
+      title,
+      content,
+      userId: req.user!.userId,
+    };
 
-        const newNote = {
-            id: Date.now(),
-            title: title.trim(),
-            content: content.trim()
-        };
+    notes.push(newNote);
+    saveNotes(notes);
 
-        notes.push(newNote);
-        saveNotes(notes);
-
-        res.status(201).json(newNote);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Could not create note' });
-    }
+    res.status(201).json(newNote);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Could not create note" });
+  }
 };
 
-// Update a note
-export const updateNote = (req: Request, res: Response): void => {
-    try {
-        const { title, content } = req.body ?? {};
+// Update only a note belonging to the logged-in user
+export const updateNote = (
+  req: AuthRequest,
+  res: Response
+): void => {
+  try {
+    const { title, content } = req.body;
 
-        if (
-            typeof title !== 'string' ||
-            typeof content !== 'string' ||
-            !title.trim() ||
-            !content.trim()
-        ) {
-            res.status(400).json({
-                message: 'Title and content are required'
-            });
-            return;
-        }
+    const notes = readNotes();
 
-        const notes = readNotes();
+    const note = notes.find(
+      n =>
+        n.id === Number(req.params.id) &&
+        n.userId === req.user!.userId
+    );
 
-        const note = notes.find(
-            n => n.id === Number(req.params.id)
-        );
-
-        if (!note) {
-            res.status(404).json({ message: 'Note not found' });
-            return;
-        }
-
-        note.title = title.trim();
-        note.content = content.trim();
-
-        saveNotes(notes);
-
-        res.json(note);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Could not update note' });
+    if (!note) {
+      res.status(404).json({ message: "Note not found" });
+      return;
     }
+
+    note.title = title;
+    note.content = content;
+
+    saveNotes(notes);
+
+    res.json(note);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Could not update note" });
+  }
 };
 
-// Delete a note
-export const deleteNote = (req: Request, res: Response): void => {
-    try {
-        const notes = readNotes();
+// Delete a note (admin authorization is handled by the route)
+export const deleteNote = (
+  req: AuthRequest,
+  res: Response
+): void => {
+  try {
+    const notes = readNotes();
 
-        const noteIndex = notes.findIndex(
-            n => n.id === Number(req.params.id)
-        );
+    const noteIndex = notes.findIndex(
+      n => n.id === Number(req.params.id)
+    );
 
-        if (noteIndex === -1) {
-            res.status(404).json({ message: 'Note not found' });
-            return;
-        }
-
-        notes.splice(noteIndex, 1);
-        saveNotes(notes);
-
-        res.json({ message: 'Note deleted successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Could not delete note' });
+    if (noteIndex === -1) {
+      res.status(404).json({ message: "Note not found" });
+      return;
     }
+
+    notes.splice(noteIndex, 1);
+    saveNotes(notes);
+
+    res.json({ message: "Note deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Could not delete note" });
+  }
 };
